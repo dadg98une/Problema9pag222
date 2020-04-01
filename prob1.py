@@ -24,14 +24,19 @@ totalCost = 0
 tiempoUso = 0
 
 eventos = []
-while(tiempo < tiempo_max):
+# while(tiempo < tiempo_max):
+def siguiente_llegada(tiempo):
     evento = Evento()
-    evento.tiempo_creacion = tiempo + random.exponencial(0.7317)
+    evento.tiempo_creacion = tiempo + random.exponencial(0.7317/60)
     evento.tiempo_evento = evento.tiempo_creacion
     evento.tipo_evento = "llegada"
-    tiempo = tiempo + random.exponencial(0.7317)
-    totalPiezas += 1
-    eventos.append(evento)
+    # tiempo = evento.tiempo_creacion
+    # totalPiezas += 1
+    return evento
+
+
+eventos.append(siguiente_llegada(0))
+totalPiezas += 1
 
 ## Inicio de la simulacion 
 tiempo = 0
@@ -63,8 +68,11 @@ while(tiempo < tiempo_max):
     eventos.sort(key=lambda x:x.tiempo_evento)
     evento = eventos.pop(0) ## Evento proximo
     tiempo = evento.tiempo_evento
+    # print(evento.tiempo_evento, evento.tipo_evento, evento.tiempo_creacion)
     piezas_max = max(piezas_max, len(cola_de_espera))
     if(evento.tipo_evento == "llegada"):
+        eventos.append(siguiente_llegada(tiempo))
+        totalPiezas += 1
         if(len(cola_de_espera) == 0 and disponibilidad() == False):
             numTroqueladora = asignarTroqueladora()
             troqueladoras[numTroqueladora] = True
@@ -84,6 +92,7 @@ while(tiempo < tiempo_max):
             pieza = cola_de_espera.pop(0)
             troqueladoras[evento.troqueladora] = False
             pieza.tiempo_inspeccion = tiempo
+            pieza.troqueladora = evento.troqueladora
             pieza.tiempo_evento = tiempo + 0.0833 ##Tiempo de inspección 
             pieza.tiempo_salida = pieza.tiempo_evento
             pieza.tipo_evento ="salida_inspeccion"
@@ -94,5 +103,6 @@ tiempo_total_inspeccion = 0
 for pieza in salidas:
     tiempo_total_inspeccion += pieza.tiempo_salida-pieza.tiempo_inspeccion
 
-print(totalPiezas) #total de piezas en el sistema
-print((tiempo_total_inspeccion/60)*10) #el costo es de 10 dolares*hora de uso de troqueladora
+print("Total de piezas en el sistema: " + str(totalPiezas)) #total de piezas en el sistema
+print("Tiempo promedio de piezas en el sistema: " + str(tiempo_total_inspeccion/totalPiezas))
+print("Costo total: $" + str((tiempo_total_inspeccion/60)*10)) #el costo es de 10 dolares*hora de uso de troqueladora
